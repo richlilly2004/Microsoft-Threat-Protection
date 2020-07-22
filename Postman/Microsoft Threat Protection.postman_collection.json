@@ -1,0 +1,215 @@
+{
+	"info": {
+		"_postman_id": "b2e8a92d-3b1f-44ca-b60c-4d68829d3f33",
+		"name": "Microsoft Threat Protection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Incidents",
+			"item": [
+				{
+					"name": "Get Incidents - All",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{appOnlyAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Types",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.security.microsoft.com/api/incidents",
+							"protocol": "https",
+							"host": [
+								"api",
+								"security",
+								"microsoft",
+								"com"
+							],
+							"path": [
+								"api",
+								"incidents"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Incidents - Top 10",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{appOnlyAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Types",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api.security.microsoft.com/api/incidents?$top=10",
+							"protocol": "https",
+							"host": [
+								"api",
+								"security",
+								"microsoft",
+								"com"
+							],
+							"path": [
+								"api",
+								"incidents"
+							],
+							"query": [
+								{
+									"key": "$top",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Advanced Hunting",
+			"item": [
+				{
+					"name": "Basic Query",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{appOnlyAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Types",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"Query\":\"EmailEvents\r\n| where SenderFromDomain !in~ ('netrixllc.com','tetravx.com')\r\n| summarize dcount(RecipientEmailAddress) by SenderFromAddress, NetworkMessageId, AttachmentCount, SendTime = Timestamp \r\n| where dcount_RecipientEmailAddress > 25\"\r\n}"
+						},
+						"url": {
+							"raw": "https://api.security.microsoft.com/api/advancedHunting/run",
+							"protocol": "https",
+							"host": [
+								"api",
+								"security",
+								"microsoft",
+								"com"
+							],
+							"path": [
+								"api",
+								"advancedHunting",
+								"run"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Bearer Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "247f9709-59f0-4c6f-8ece-b718c75e66d6",
+						"exec": [
+							"let response = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.environment.set(\"appOnlyAccessToken\", response.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "{{grant_type}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "https://api.security.microsoft.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenantId}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
