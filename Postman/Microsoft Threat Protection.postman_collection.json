@@ -89,6 +89,52 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update Incident",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{appOnlyAccessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Types",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\": \"Resolved\",\r\n\t\"assignedTo\": \"rlilly@netrixllc.com\",\r\n    \"classification\": \"FalsePositive\",\r\n    \"determination\": \"Malware\",\r\n    \"comment\": \"Closed by Postman\"\r\n}",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "https://api.security.microsoft.com/api/incidents/5078",
+							"protocol": "https",
+							"host": [
+								"api",
+								"security",
+								"microsoft",
+								"com"
+							],
+							"path": [
+								"api",
+								"incidents",
+								"5078"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -119,7 +165,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n\"Query\":\"EmailEvents\r\n| where SenderFromDomain !in~ ('netrixllc.com','tetravx.com')\r\n| summarize dcount(RecipientEmailAddress) by SenderFromAddress, NetworkMessageId, AttachmentCount, SendTime = Timestamp \r\n| where dcount_RecipientEmailAddress > 25\"\r\n}"
+							"raw": "{\r\n\"Query\":\"//Find logons that occurred right after malicious email was received\r\nlet MaliciousEmail=EmailEvents\r\n| where Timestamp > ago(7d)\r\n| where MalwareFilterVerdict == 'Malware'\r\n| project TimeEmail = Timestamp, Subject, SenderFromAddress, AccountName = tostring(split(RecipientEmailAddress, '@')[0]);\r\nMaliciousEmail\r\n| join (\r\nDeviceLogonEvents\r\n| project LogonTime = Timestamp, AccountName, DeviceName\r\n) on AccountName \r\n| where (LogonTime - TimeEmail) between (0min.. 30min)\r\n| take 10\"\r\n}",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "https://api.security.microsoft.com/api/advancedHunting/run",
@@ -191,7 +240,10 @@
 							"value": "https://api.security.microsoft.com",
 							"type": "text"
 						}
-					]
+					],
+					"options": {
+						"urlencoded": {}
+					}
 				},
 				"url": {
 					"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
